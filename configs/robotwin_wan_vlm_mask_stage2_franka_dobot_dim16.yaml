@@ -1,0 +1,123 @@
+# Franka Dobot-format config (dim16, pre-stitched T-shape videos)
+# Uses franka_data_dobot_format/ with pre-stitched 360x320 videos
+
+common:
+  action_dim: 16
+  state_dim: 16
+  max_action_dim: 16
+  num_video_frames: 8
+  video_height: 384
+  video_width: 320
+  global_downsample_rate: 10
+  video_action_freq_ratio: 2
+
+dataset:
+  type: "franka_dobot"
+  dataset_dir: "/home/ma-user/work/wx1513998/franka_data_dobot_format"
+  task_mode: "multi"
+  task_name: ["stack_bowls_rc"]
+  max_episodes: null
+  image_aug: false
+
+  params:
+    embodiment_type: "franka"
+
+model:
+  wan:
+    checkpoint_path: "/home/ma-user/work/wx1513998/pretrained_models/Wan2.2-TI2V-5B"
+    vae_path: "/home/ma-user/work/wx1513998/pretrained_models/Wan2.2-TI2V-5B/Wan2.2_VAE.pth"
+    config_path: "/home/ma-user/work/wx1513998/pretrained_models/Wan2.2-TI2V-5B"
+    precision: "bfloat16"
+
+  vlm:
+    checkpoint_path: "/home/ma-user/work/wx1513998/pretrained_models/Qwen3-VL-2B-Instruct"
+    precision: "bfloat16"
+    frozen: false
+
+  qwen3_expert:
+    vlm_dim: 2048
+    head_dim: 128
+    num_heads: 24
+    num_layers: 30
+    norm_eps: 1e-5
+
+  action_expert:
+    hidden_size: 1024
+    ffn_dim_multiplier: 4
+    norm_eps: 1e-5
+
+  time_distribution:
+    timestep_sample_method: "logit_normal"
+    sigmoid_scale: 1.0
+    min_t: 0.0
+    max_t: 1.0
+
+  training_mode: "finetune"
+  inference:
+    num_inference_timesteps: 10
+
+  loss_weights:
+    video_loss_weight: 1.0
+    action_loss_weight: 1.0
+
+  subtask_prediction:
+    enabled: false
+    mode: "mot_decoder"
+    loss_weight: 0.2
+    decoder_d_model: 2048
+    decoder_layers: 2
+    decoder_heads: 16
+    decoder_ffn_dim: 8192
+    max_length: 64
+    use_vlm_memory: false
+
+  progress_detection:
+    enabled: false
+    loss_weight: 0.5
+    hidden_dim: 512
+
+  ema:
+    enabled: false
+    update_after_step: 0
+    inv_gamma: 1.0
+    power: 0.75
+    min_value: 0.0
+    max_value: 0.9999
+
+training:
+  batch_size: 12
+  max_steps: 100000
+  learning_rate: 5.0e-5
+  wan_learning_rate: 5.0e-5
+  vlm_learning_rate: 5.0e-5
+  weight_decay: 0.01
+  gradient_accumulation_steps: 1
+  scheduler_type: "linear"
+  warmup_steps: 200
+  cycle_length: 5000000
+  f_max: 0.99
+  f_min: 0.4
+  grad_clip_norm: 0.5
+  use_amp: true
+  find_unused_parameters: false
+
+system:
+  checkpoint_dir: "/home/ma-user/work/wx1513998/Motus_initial/checkpoints/checkpoints_franka_dobot_dim16"
+  log_level: "INFO"
+  log_interval: 1
+  save_interval: 20000
+  val_interval: 500
+  num_workers: 16
+  pin_memory: true
+
+logging:
+  report_to: "tensorboard"
+  wandb_project: "motus-wan-vlm"
+  tensorboard_log_dir: "/home/ma-user/work/wx1513998/Motus_initial/tensorboard_franka_dobot_dim16"
+  run_name: null
+
+resume:
+  checkpoint_path: null
+
+finetune:
+  checkpoint_path: "/home/ma-user/work/wx1513998/checkpoints/88"

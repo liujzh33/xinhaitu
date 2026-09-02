@@ -1,0 +1,257 @@
+# Multi-Source Pre-training Configuration
+# Unified pre-training on 8 robot datasets
+# Weight scheme: dataset-level ratio (sum=106) with inner allocation by robot hours
+# Formula: per_ep_weight = target_ratio * inner_hour_ratio / eps_i
+# Dataset contribution = sum(per_ep_weight * eps_i) = target_ratio
+
+common:
+  # Robot dimensions
+  action_dim: 16         # Robot action dimension (unified to 16)
+  state_dim: 16          # Robot state dimension
+  max_action_dim: 16     # Max action dimension for padding
+
+  # Video settings
+  num_video_frames: 8    # Number of video frames to predict
+  video_height: 384      # Video frame height
+  video_width: 320       # Video frame width
+
+  # Sampling strategy parameters
+  global_downsample_rate: 3     # Global downsampling (e.g., 30Hz -> 20Hz)
+  video_action_freq_ratio: 2    # Video:Action frequency ratio
+
+dataset:
+  type: multi_source_pretrain
+  sources:
+    # GM-100 - 3 robot types (weight: 20/106)
+    - dataset_dir: /cache/wwx1484778/Pretraindata/GM-100/GM-100_AgiBotG1_converted
+      pattern: gm100
+      robot_type: AgiBotG1
+      weight: 0.000635
+    - dataset_dir: /cache/wwx1484778/Pretraindata/GM-100/GM-100_AgileX_converted
+      pattern: gm100
+      robot_type: AgileX
+      weight: 0.000524
+    - dataset_dir: /cache/wwx1484778/Pretraindata/GM-100/GM-100_GalaxeaR1Pro_converted
+      pattern: gm100
+      robot_type: GalaxeaR1Pro
+      weight: 0.000183
+    # RoboCoin - 4 robot types (weight: 20/106)
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboCoin
+      pattern: robocoin
+      robot_type: Cobot_Magic
+      weight: 0.000479
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboCoin
+      pattern: robocoin
+      robot_type: R1
+      weight: 0.000940
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboCoin
+      pattern: robocoin
+      robot_type: Split_aloha
+      weight: 0.000314
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboCoin
+      pattern: robocoin
+      robot_type: AgiBot-g1
+      weight: 0.000232
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboCoin
+      pattern: robocoin
+      robot_type: Galaxea
+      weight: 0.000183
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboCoin
+      pattern: robocoin
+      robot_type: Agilex
+      weight: 0.000262
+    # RC1.0 - 4 robot types (weight: 15/106)
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RC1.0
+      pattern: rc2
+      robot_type: ARX5
+      weight: 0.000631
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RC1.0
+      pattern: rc2
+      robot_type: Aloha
+      weight: 0.000408
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RC1.0
+      pattern: rc2
+      robot_type: UR5
+      weight: 0.000967
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RC1.0
+      pattern: rc2
+      robot_type: Franka
+      weight: 0.000486
+    # RC2.0 - 4 robot types (weight: 15/106)
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RC2.0
+      pattern: rc2
+      robot_type: DOS-W1
+      weight: 0.000438
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RC2.0
+      pattern: rc2
+      robot_type: ALOHA
+      weight: 0.000438
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RC2.0
+      pattern: rc2
+      robot_type: ARX5
+      weight: 0.000398
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RC2.0
+      pattern: rc2
+      robot_type: UR5
+      weight: 0.000711
+    # RoboTwin - 4 robot types (weight: 15/106)
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboTwin2.0/agilex
+      pattern: robotwin2
+      robot_type: agilex
+      weight: 0.000192
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboTwin2.0/arx-x5
+      pattern: robotwin2
+      robot_type: arx-x5
+      weight: 0.000145
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboTwin2.0/franka
+      pattern: robotwin2
+      robot_type: franka
+      weight: 0.000125
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboTwin2.0/ur5
+      pattern: robotwin2
+      robot_type: ur5
+      weight: 0.000108
+    # RoboMIND - 5 robot types (weight: 15/106)
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboMIND
+      pattern: robomind
+      robot_type: agilex_3rgb
+      weight: 0.000598
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboMIND
+      pattern: robomind
+      robot_type: ur_1rgb
+      weight: 0.000143
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboMIND
+      pattern: robomind
+      robot_type: franka_1rgb
+      weight: 0.000168
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboMIND
+      pattern: robomind
+      robot_type: franka_3rgb
+      weight: 0.000149
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboMIND
+      pattern: robomind
+      robot_type: sim_franka_3rgb
+      weight: 0.000179
+    # RDT - 1 robot type (weight: 3/106)
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RDT
+      pattern: rdt
+      robot_type: default
+      weight: 0.000491
+    # RoboMIND2.0 - 1 robot type (weight: 3/106)
+    - dataset_dir: /cache/wwx1484778/Pretraindata/RoboMIND2.0
+      pattern: robomind2
+      robot_type: Franka-sim
+      weight: 0.000281
+  max_episodes: null  # null = no limit
+  image_aug: false
+
+model:
+  # WAN Video Model settings
+  wan:
+    config_path: /cache/wwx1484778/motus_weights/Wan2.2-TI2V-5B
+    checkpoint_path: /cache/wwx1484778/motus_weights/Wan2.2-TI2V-5B
+    vae_path: /cache/wwx1484778/motus_weights/Wan2.2-TI2V-5B/Wan2.2_VAE.pth
+    precision: bfloat16
+
+  # VLM settings (Qwen3-VL-2B - trainable)
+  vlm:
+    checkpoint_path: /cache/wwx1484778/motus_weights/Qwen3-VL-2B-Instruct
+    precision: bfloat16
+    frozen: false             # VLM is trainable (not frozen)
+
+  # Qwen3-VL Expert settings (per-layer QKV projections for direct MoT)
+  qwen3_expert:
+    vlm_dim: 2048             # Qwen3-VL-2B hidden size
+    head_dim: 128             # Head dimension (matches WAN)
+    num_heads: 24             # Number of heads (matches WAN 5B)
+    num_layers: 30            # Number of layers (matches WAN)
+    norm_eps: 1e-5
+
+  # Action Expert configuration
+  action_expert:
+    hidden_size: 1024        # Hidden dimension (same as original Motus)
+    ffn_dim_multiplier: 4    # FFN = hidden_size * multiplier
+    norm_eps: 1e-5
+
+  # Training mode
+  training_mode: "finetune"   # "pretrain" (action only) or "finetune" (state+action)
+
+  # Time distribution settings
+  time_distribution:
+    timestep_sample_method: logit_normal
+    sigmoid_scale: 1.0
+    min_t: 0.0
+    max_t: 1.0
+
+  # Inference settings
+  inference:
+    num_inference_timesteps: 10
+
+  # Loss weights
+  loss_weights:
+    video_loss_weight: 1.0
+    action_loss_weight: 1.0
+
+  # EMA settings
+  ema:
+    enabled: false
+    update_after_step: 0
+    inv_gamma: 1.0
+    power: 0.75
+    min_value: 0.0
+    max_value: 0.9999
+
+training:
+  # Optimization settings
+  batch_size: 8
+  max_steps: 150000
+  learning_rate: 5.0e-5
+  wan_learning_rate: 5.0e-5      # WAN backbone LR
+  vlm_learning_rate: 5.0e-5       # VLM LR (50% of main)
+  weight_decay: 0.01
+  gradient_accumulation_steps: 1  # Effective batch size = batch_size * gradient_accumulation_steps * num_gpus
+
+  # Scheduler settings
+  scheduler_type: linear
+  warmup_steps: 200
+  cycle_length: 5000000
+  f_max: 0.99
+  f_min: 0.4
+
+  # Gradient settings
+  grad_clip_norm: 0.5
+
+  # Mixed precision
+  use_amp: true
+
+  # Distributed training
+  find_unused_parameters: false
+
+system:
+  # Paths
+  checkpoint_dir: "/cache/wwx1484778/motus/checkpoints_0501_15w_pretrain"
+  log_level: INFO
+
+  # Intervals
+  log_interval: 1
+  save_interval: 30000
+  val_interval: 500
+
+  # Hardware settings
+  num_workers: 16
+  pin_memory: true
+
+# Logging settings
+logging:
+  report_to: tensorboard
+  wandb_project: motus
+  tensorboard_log_dir: "/cache/wwx1484778/motus/tensorboard_logs_0501_15w_pretrain"
+  run_name: null
+
+# Resume training settings
+resume:
+  checkpoint_path: null
+
+# Finetune settings
+finetune:
+  checkpoint_path: null
