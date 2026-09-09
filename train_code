@@ -1,0 +1,103 @@
+先解压一次，以后每次只跑启动命令。路径换成对方机器上的实际目录。
+
+## 第一次（只做一次）
+
+```bash
+tar -xzf xinghaitu_motus_server.tar.gz
+cd xinghaitu_motus_server_pack
+bash scripts/unpack_env.sh
+source motus_env/bin/activate
+
+# 权重包解压到你放权重的目录
+tar -xzf xinghaitu_pretrained_weights.tar.gz -C /你放权重的目录
+```
+
+解压后应对上：
+
+- `CKPT_DIR` → `.../xinghaitu/60000/`（里面直接有 `mp_rank_00_model_states.pt`）
+- `WAN_PATH` → `.../Wan2.2-TI2V-5B/`
+- `VLM_PATH` → `.../Qwen3-VL-2B-Instruct/`
+
+---
+
+## 单卡启动（显存 ≥ 28GB，例如 5090）
+
+```bash
+cd xinghaitu_motus_server_pack
+source motus_env/bin/activate
+
+export CKPT_DIR=/path/to/xinghaitu/60000
+export WAN_PATH=/path/to/Wan2.2-TI2V-5B
+export VLM_PATH=/path/to/Qwen3-VL-2B-Instruct
+export CUDA_VISIBLE_DEVICES=0
+export HOST=0.0.0.0
+export PORT=8001
+
+bash scripts/start_server.sh
+```
+
+等价的一条 Python 命令：
+
+```bash
+cd xinghaitu_motus_server_pack
+source motus_env/bin/activate
+export PYTHONPATH=$PWD/Motus
+
+CUDA_VISIBLE_DEVICES=0 python Motus/dobot/server_vlm_mask.py \
+  --model_config Motus/dobot/xinghaitu_deploy.yaml \
+  --ckpt_dir /path/to/xinghaitu/60000 \
+  --wan_path /path/to/Wan2.2-TI2V-5B \
+  --vlm_path /path/to/Qwen3-VL-2B-Instruct \
+  --host 0.0.0.0 \
+  --port 8001
+```
+
+---
+
+## 双卡启动（4090 24GB 必须用这个）
+
+```bash
+cd xinghaitu_motus_server_pack
+source motus_env/bin/activate
+
+export CKPT_DIR=/path/to/xinghaitu/60000
+export WAN_PATH=/path/to/Wan2.2-TI2V-5B
+export VLM_PATH=/path/to/Qwen3-VL-2B-Instruct
+export CUDA_VISIBLE_DEVICES=0,1
+export DEVICE=cuda:0
+export VLM_DEVICE=cuda:1
+export HOST=0.0.0.0
+export PORT=8001
+
+bash scripts/start_server.sh
+```
+
+等价的一条 Python 命令：
+
+```bash
+cd xinghaitu_motus_server_pack
+source motus_env/bin/activate
+export PYTHONPATH=$PWD/Motus
+
+CUDA_VISIBLE_DEVICES=0,1 python Motus/dobot/server_vlm_mask.py \
+  --model_config Motus/dobot/xinghaitu_deploy.yaml \
+  --ckpt_dir /path/to/xinghaitu/60000 \
+  --wan_path /path/to/Wan2.2-TI2V-5B \
+  --vlm_path /path/to/Qwen3-VL-2B-Instruct \
+  --device cuda:0 \
+  --vlm_device cuda:1 \
+  --host 0.0.0.0 \
+  --port 8001
+```
+
+和单卡的唯一差别：`CUDA_VISIBLE_DEVICES=0,1`，再加上 `--device cuda:0 --vlm_device cuda:1`（脚本里就是 `DEVICE` / `VLM_DEVICE`）。WAN 在第 0 张卡，VLM 在第 1 张卡。
+
+---
+
+起来后检查：
+
+```bash
+curl http://127.0.0.1:8001/health
+```
+
+看到 `"model_loaded": true` 就对了。不要加 `--dataset_name`。`CKPT_DIR` 不要再拼 `pytorch_model`。
